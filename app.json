@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "frontend",
-    "slug": "frontend",
+    "name": "Punch",
+    "slug": "punch",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "frontend",
+    "scheme": "punch",
     "userInterfaceStyle": "automatic",
     "splash": {
       "image": "./assets/images/splash-icon.png",
@@ -13,7 +13,11 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.game.punchapp",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -23,7 +27,7 @@
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false,
-      "package": "com.rajp123.frontend"
+      "package": "com.game.punchapp"
     },
     "web": {
       "bundler": "metro",
@@ -39,9 +43,9 @@
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "81ccc2c4-b297-4c86-a725-201f53bc0787"
+        "projectId": "3fc2f38b-481c-4d4c-ba5e-f1ecb26403ab"
       }
     },
-    "owner": "haneyp123"
+    "owner": "rajp123"
   }
 }
