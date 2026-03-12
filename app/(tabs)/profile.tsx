@@ -1,24 +1,24 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
-  View,
-  Text,
-  ScrollView,
-  TouchableOpacity,
-  StyleSheet,
-  SafeAreaView,
-  Alert,
-  TextInput,
   ActivityIndicator,
+  Alert,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
   Switch,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import SubscriptionModal from '../../components/SubscriptionModal';
-import { fetchUser, clearUser, updateUser, deleteUserAccount, toggleTheme } from '../../store/userSlice';
-import { MOOD_MAP, MoodKey, DARK_COLORS } from '../../utils/constants';
 import { useTheme } from '../../hooks/useTheme';
 import type { AppDispatch, RootState } from '../../store/store';
-import { useRouter } from 'expo-router';
-import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { clearUser, deleteUserAccount, fetchUser, toggleTheme, updateUser } from '../../store/userSlice';
+import { MOOD_MAP, MoodKey } from '../../utils/constants';
 
 export default function ProfileScreen() {
   const dispatch = useDispatch<AppDispatch>();
@@ -131,7 +131,7 @@ export default function ProfileScreen() {
           ) : (
             <>
               <Text style={styles.userName}>{name}</Text>
-              <Text style={styles.memberSince}>Journal Qantos Member</Text>
+              <Text style={styles.memberSince}>Punch Member</Text>
             </>
           )}
         </View>
@@ -145,7 +145,7 @@ export default function ProfileScreen() {
           <View style={styles.themeRow}>
             <View style={styles.themeInfo}>
               <Text style={styles.themeLabel}>{isDark ? 'Dark Mode' : 'Light Mode'}</Text>
-              <Text style={styles.themeDesc}>Adjust how Journal Qantos looks</Text>
+              <Text style={styles.themeDesc}>Adjust how Punch looks</Text>
             </View>
             <Switch
               value={isDark}

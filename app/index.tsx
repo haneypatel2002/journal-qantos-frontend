@@ -1,20 +1,20 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
-  View,
+  ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
+  StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
-  StyleSheet,
-  KeyboardAvoidingView,
-  Platform,
-  ActivityIndicator,
+  View,
 } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
-import { useRouter } from 'expo-router';
-import { createUser, loadStoredUser } from '../store/userSlice';
 import { useTheme } from '../hooks/useTheme';
 import type { AppDispatch, RootState } from '../store/store';
-import { Ionicons } from '@expo/vector-icons';
+import { createUser, loadStoredUser } from '../store/userSlice';
 
 export default function OnboardingScreen() {
   const [name, setName] = useState('');
@@ -47,10 +47,9 @@ export default function OnboardingScreen() {
     >
       <View style={styles.content}>
         <View style={styles.header}>
-          {/* <Text style={styles.logo}>📓</Text> */}
           <Ionicons name="book-sharp" size={55} color={colors.primary} style={styles.journalIcon} />
-          <Text style={styles.appName}>Journal Qantos</Text>
-          <Text style={styles.tagline}>Your AI-Powered Journaling Companion</Text>
+          <Text style={styles.appName}>Punch</Text>
+          {/* <Text style={styles.tagline}>Your AI-Powered Journaling Companion</Text> */}
         </View>
 
         <View style={styles.form}>
@@ -116,7 +115,7 @@ const createStyles = (colors: any) => StyleSheet.create({
   },
   header: {
     alignItems: 'center',
-    marginBottom: 48,
+    marginBottom: 20,
   },
   logo: {
     fontSize: 64,

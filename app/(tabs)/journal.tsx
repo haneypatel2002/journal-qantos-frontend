@@ -82,7 +82,9 @@ export default function JournalScreen() {
     });
   };
 
-  const isToday = selectedDate === new Date().toISOString().split('T')[0];
+  const nowDate = new Date();
+  const todayLocal = `${nowDate.getFullYear()}-${String(nowDate.getMonth() + 1).padStart(2, '0')}-${String(nowDate.getDate()).padStart(2, '0')}`;
+  const isToday = selectedDate === todayLocal;
   const formattedDate = new Date(selectedDate + 'T00:00:00').toLocaleDateString('en', {
     weekday: 'long',
     month: 'long',
