@@ -35,6 +35,13 @@
     ],
     "experiments": {
       "typedRoutes": true
-    }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "81ccc2c4-b297-4c86-a725-201f53bc0787"
+      }
+    },
+    "owner": "haneyp123"
   }
 }

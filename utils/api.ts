@@ -2,8 +2,8 @@ import axios from 'axios';
 
 // Updated to your local IP address for mobile testing
 // (This also bypasses the code-tunnel error)
-const API_BASE_URL = 'http://192.168.1.50:5000/api';
-
+// const API_BASE_URL = 'http://192.168.1.50:5000/api';
+const API_BASE_URL = 'https://journal-qantos-backend.vercel.app/api';
 const api = axios.create({
   baseURL: API_BASE_URL,
   timeout: 10000,
