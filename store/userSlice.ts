@@ -163,7 +163,13 @@ const userSlice = createSlice({
       .addCase(updateUser.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
-      });
+      })
+      .addMatcher(
+        (action) => action.type === 'journal/delete/fulfilled',
+        (state) => {
+          state.entryCount = Math.max(0, state.entryCount - 1);
+        }
+      );
   },
 });
 

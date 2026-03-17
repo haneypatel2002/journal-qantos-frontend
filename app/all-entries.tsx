@@ -9,11 +9,13 @@ import {
   ActivityIndicator,
   Modal,
   Share,
+  Alert,
 } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { fetchEntries, setSelectedDate } from '../store/journalSlice';
+import { fetchEntries, setSelectedDate, deleteEntry } from '../store/journalSlice';
+import { fetchUser } from '../store/userSlice';
 import { MOOD_MAP, MoodKey } from '../utils/constants';
 import { useTheme } from '../hooks/useTheme';
 import type { AppDispatch, RootState } from '../store/store';
@@ -94,6 +96,27 @@ export default function AllEntriesScreen() {
     } catch (error) {
       console.error('Error sharing:', error);
     }
+  };
+
+  const handleDelete = (id: string, date: string) => {
+    Alert.alert(
+      'Delete Entry',
+      `Are you sure you want to delete your journal entry for ${formatDate(date)}?`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { 
+          text: 'Delete', 
+          style: 'destructive',
+          onPress: () => {
+            dispatch(deleteEntry(id)).then(() => {
+              if (userId) {
+                dispatch(fetchUser(userId));
+              }
+            });
+          }
+        },
+      ]
+    );
   };
 
   const clearFilters = () => {
@@ -310,6 +333,12 @@ export default function AllEntriesScreen() {
                     onPress={() => handleShare(item)}
                   >
                     <Ionicons name="share-outline" size={20} color={colors.textSecondary} />
+                  </TouchableOpacity>
+                  <TouchableOpacity 
+                    style={[styles.shareBtn, { marginLeft: 8 }]} 
+                    onPress={() => handleDelete(item._id, item.date)}
+                  >
+                    <Ionicons name="trash-outline" size={20} color="#FF4444" />
                   </TouchableOpacity>
                 </View>
                 

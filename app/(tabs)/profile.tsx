@@ -19,6 +19,7 @@ import { useTheme } from '../../hooks/useTheme';
 import type { AppDispatch, RootState } from '../../store/store';
 import { clearUser, deleteUserAccount, fetchUser, toggleTheme, updateUser } from '../../store/userSlice';
 import { MOOD_MAP, MoodKey } from '../../utils/constants';
+import { scheduleQuickTestNotification, scheduleDailyJournalReminder } from '../../utils/notifications';
 
 export default function ProfileScreen() {
   const dispatch = useDispatch<AppDispatch>();
@@ -200,21 +201,24 @@ export default function ProfileScreen() {
           </View>
         )}
 
-        {/* Premium */}
-        {/* <TouchableOpacity
-          style={styles.premiumCard}
-          onPress={() => setShowSubscription(true)}
-          activeOpacity={0.8}
-        >
-          <View style={styles.premiumIconContainer}>
-            <MaterialCommunityIcons name="crown" size={28} color={colors.warning} />
+        {/* Notifications Test */}
+        {/* <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <Ionicons name="notifications" size={20} color={colors.primary} />
+            <Text style={styles.sectionTitle}>Notifications Test</Text>
           </View>
-          <View style={styles.premiumText}>
-            <Text style={styles.premiumTitle}>Upgrade to Premium</Text>
-            <Text style={styles.premiumDesc}>Unlock AI insights, unlimited challenges & more</Text>
+          <View style={styles.testButtons}>
+            <TouchableOpacity 
+              style={styles.testBtn} 
+              onPress={async () => {
+                await scheduleQuickTestNotification();
+                Alert.alert('Test Scheduled', 'You should receive a notification in 5 seconds. Please close the app or lock your screen to see it.');
+              }}
+            >
+              <Text style={styles.testBtnText}>Quick Test (5s)</Text>
+            </TouchableOpacity>
           </View>
-          <Ionicons name="chevron-forward" size={20} color={colors.primary} />
-        </TouchableOpacity> */}
+        </View> */}
 
         {/* Logout */}
         <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
@@ -497,5 +501,24 @@ const createStyles = (colors: any) => StyleSheet.create({
     fontWeight: '500',
     color: colors.textSecondary,
     textDecorationLine: 'underline',
+  },
+  testButtons: {
+    flexDirection: 'row',
+    gap: 10,
+    marginTop: 8,
+  },
+  testBtn: {
+    flex: 1,
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.primary + '40',
+    paddingVertical: 12,
+    borderRadius: 12,
+    alignItems: 'center',
+  },
+  testBtnText: {
+    color: colors.primary,
+    fontWeight: '600',
+    fontSize: 13,
   },
 });

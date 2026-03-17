@@ -86,6 +86,18 @@ export const fetchMoodData = createAsyncThunk(
   }
 );
 
+export const deleteEntry = createAsyncThunk(
+  'journal/delete',
+  async (id: string, { rejectWithValue }) => {
+    try {
+      await journalAPI.delete(id);
+      return id;
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to delete entry');
+    }
+  }
+);
+
 const journalSlice = createSlice({
   name: 'journal',
   initialState,
@@ -140,6 +152,12 @@ const journalSlice = createSlice({
       })
       .addCase(fetchMoodData.fulfilled, (state, action) => {
         state.moodData = action.payload;
+      })
+      .addCase(deleteEntry.fulfilled, (state, action) => {
+        state.entries = state.entries.filter((e) => e._id !== action.payload);
+        if (state.currentEntry?._id === action.payload) {
+          state.currentEntry = null;
+        }
       });
   },
 });

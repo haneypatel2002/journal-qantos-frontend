@@ -24,6 +24,7 @@ import { fetchUser } from '../../store/userSlice';
 import type { AppDispatch, RootState } from '../../store/store';
 import { useTheme } from '../../hooks/useTheme';
 import { Ionicons } from '@expo/vector-icons';
+import { notifyJournalEntrySaved } from '../../utils/notifications';
 
 export default function JournalScreen() {
   const dispatch = useDispatch<AppDispatch>();
@@ -78,6 +79,7 @@ export default function JournalScreen() {
 
     dispatch(saveEntry({ userId, date: selectedDate, mood, content })).then(() => {
       dispatch(fetchUser(userId));
+      // notifyJournalEntrySaved();
       Alert.alert('Saved! ✨', 'Your journal entry has been saved.');
     });
   };

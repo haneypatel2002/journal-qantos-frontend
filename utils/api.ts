@@ -30,6 +30,7 @@ export const journalAPI = {
     api.put(`/journal/${id}`, data),
   getMoodData: (userId: string, months?: number) =>
     api.get(`/journal/${userId}/mood-data`, { params: { months } }),
+  delete: (id: string) => api.delete(`/journal/${id}`),
 };
 
 // Challenge API

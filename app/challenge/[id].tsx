@@ -19,6 +19,7 @@ import { CHALLENGE_CATEGORIES } from '../../utils/constants';
 import { Ionicons } from '@expo/vector-icons';
 import type { AppDispatch, RootState } from '../../store/store';
 import { useTheme } from '../../hooks/useTheme';
+import { notifyChallengeCompleted } from '../../utils/notifications';
 
 export default function ChallengeDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -61,6 +62,7 @@ export default function ChallengeDetailScreen() {
     dispatch(completeDay({ challengeId: challenge._id, day: dayNum, note })).then((action: any) => {
       // Refresh user to update entry counts/streaks since a journal entry was created
       dispatch(fetchUser(userId!));
+      // notifyChallengeCompleted(dayNum);
       if (action.payload?.completedDays === 21) {
         Alert.alert('🎉 Congratulations!', 'You completed the 21-day challenge! Amazing work!');
       }

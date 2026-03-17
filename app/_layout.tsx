@@ -1,11 +1,12 @@
 import { useFonts } from 'expo-font';
+import * as Notifications from 'expo-notifications';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { StatusBar } from 'react-native';
 import { Provider, useSelector } from 'react-redux';
-import { store, RootState } from '../store/store';
 import { useTheme } from '../hooks/useTheme';
+import { RootState, store } from '../store/store';
 
 export { ErrorBoundary } from 'expo-router';
 
@@ -15,13 +16,40 @@ function RootLayoutNav() {
   const isOnboarded = useSelector((state: RootState) => state.user.isOnboarded);
   const router = useRouter();
   const segments = useSegments();
-
   const { colors, isDark } = useTheme();
+
+  const notificationListener = useRef<Notifications.Subscription | null>(null);
+  const responseListener = useRef<Notifications.Subscription | null>(null);
+
+  useEffect(() => {
+    // This listener is fired whenever a notification is received while the app is foregrounded
+    notificationListener.current = Notifications.addNotificationReceivedListener(notification => {
+      console.log('Notification received in foreground:', notification);
+    });
+
+    // This listener is fired whenever a user taps on or interacts with a notification 
+    responseListener.current = Notifications.addNotificationResponseReceivedListener(response => {
+      const url = response.notification.request.content.data?.url;
+      if (url) {
+        router.push(url as any);
+      }
+    });
+
+    return () => {
+      if (notificationListener.current) {
+        notificationListener.current.remove();
+      }
+      if (responseListener.current) {
+        responseListener.current.remove();
+      }
+    };
+  }, []);
 
   useEffect(() => {
     if (isOnboarded) {
       const inAuthGroup = segments[0] === '(tabs)';
-      if (!inAuthGroup) {
+      const onWelcome = segments[0] === 'welcome';
+      if (!inAuthGroup && !onWelcome) {
         router.replace('/(tabs)/journal');
       }
     }
@@ -40,6 +68,7 @@ function RootLayoutNav() {
         }}
       >
         <Stack.Screen name="index" />
+        <Stack.Screen name="welcome" options={{ animation: 'fade' }} />
         <Stack.Screen name="(tabs)" />
         <Stack.Screen
           name="challenge/[id]"

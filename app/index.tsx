@@ -37,7 +37,8 @@ export default function OnboardingScreen() {
 
   const handleContinue = () => {
     if (name.trim().length < 2) return;
-    dispatch(createUser(name.trim()));
+    // Navigate to welcome screen first — it handles createUser
+    router.replace({ pathname: '/welcome', params: { name: name.trim() } });
   };
 
   return (
