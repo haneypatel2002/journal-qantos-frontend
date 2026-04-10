@@ -205,7 +205,8 @@ const createStyles = (colors: any) => StyleSheet.create({
   dayItemToday: {
     borderColor: colors.primary,
     borderWidth: 2,
-    backgroundColor: colors.primary + '15',
+    // backgroundColor: colors.primary + '15',
+    backgroundColor: colors.surface,
     elevation: 4,
     shadowColor: colors.primary,
     shadowOpacity: 0.2,

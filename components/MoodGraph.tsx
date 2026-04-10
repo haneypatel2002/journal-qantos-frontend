@@ -69,9 +69,9 @@ export default function MoodGraph({ data }: MoodGraphProps) {
   const [selectedDay, setSelectedDay] = useState<DayData | null>(null);
 
   const weeks = getWeeksData(data);
-  const svgWidth = weeks.length * (CELL_SIZE + CELL_GAP) + 40;
-  const svgHeight = DAYS_IN_WEEK * (CELL_SIZE + CELL_GAP) + 40;
-  const dayLabels = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  const svgWidth = weeks.length * (CELL_SIZE + CELL_GAP) + 10;
+  const svgHeight = DAYS_IN_WEEK * (CELL_SIZE + CELL_GAP) + 25;
+  const dayLabels = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']; // Traditional GitHub style
 
   const getMoodColor = (mood: string | null): string => {
     if (!mood) return colors.surface;
@@ -81,35 +81,42 @@ export default function MoodGraph({ data }: MoodGraphProps) {
 
   const formatDateLabel = (dateStr: string) => {
     return new Date(dateStr + 'T00:00:00').toLocaleDateString(undefined, {
-      weekday: 'short',
-      month: 'short',
+      weekday: 'long',
+      month: 'long',
       day: 'numeric',
       year: 'numeric'
     });
   };
 
   const labels = useMemo(() => {
-    const monthYearLabels: { label: string; x: number; isYear?: boolean }[] = [];
+    const monthYearLabels: { label: string; x: number; isYear?: boolean; isCurrent?: boolean }[] = [];
     let lastMonth = -1;
     let lastYear = -1;
+    const now = new Date();
+    const currentMonth = now.getMonth();
+    const currentYear = now.getFullYear();
 
     weeks.forEach((week, i) => {
-      const firstDay = new Date(week[0].date);
+      const firstDay = new Date(week[0].date + 'T00:00:00');
       const month = firstDay.getMonth();
       const year = firstDay.getFullYear();
       
+      const isCurrentMonth = month === currentMonth && year === currentYear;
+
       if (year !== lastYear) {
         monthYearLabels.push({
           label: year.toString(),
-          x: i * (CELL_SIZE + CELL_GAP) + 28,
+          x: i * (CELL_SIZE + CELL_GAP),
           isYear: true
         });
         lastYear = year;
         lastMonth = month;
-      } else if (month !== lastMonth) {
+      } else if (month !== lastMonth && (i % 4 === 0 || isCurrentMonth)) { 
+        // Ensure current month is shown even if spacing doesn't align
         monthYearLabels.push({
           label: firstDay.toLocaleDateString(undefined, { month: 'short' }),
-          x: i * (CELL_SIZE + CELL_GAP) + 28
+          x: i * (CELL_SIZE + CELL_GAP),
+          isCurrent: isCurrentMonth
         });
         lastMonth = month;
       }
@@ -119,58 +126,62 @@ export default function MoodGraph({ data }: MoodGraphProps) {
 
   const selectedMoodInfo = selectedDay?.mood ? MOOD_MAP[selectedDay.mood as MoodKey] : null;
 
+  const todayStr = new Date().toISOString().split('T')[0];
+
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Mood History</Text>
-      <View style={styles.graphContainer}>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+      <View style={styles.headerRow}>
+        <Text style={styles.title}>Mood History</Text>
+      </View>
+
+      <View style={styles.graphWrapper}>
+        <View style={styles.dayLabelsCol}>
+          {dayLabels.map((l, i) => (
+            <Text key={i} style={styles.dayLabelText}>{l}</Text>
+          ))}
+        </View>
+
+        <ScrollView 
+          horizontal 
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.scrollPadding}
+          ref={(ref) => ref?.scrollToEnd({ animated: false })}
+        >
           <Svg width={svgWidth} height={svgHeight}>
-            {/* Month/Year labels */}
+            {/* Month labels */}
             {labels.map((l, i) => (
               <SvgText
                 key={`label-${i}`}
                 x={l.x}
-                y={12}
-                fontSize={l.isYear ? 11 : 9}
-                fill={l.isYear ? colors.text : colors.textSecondary}
-                fontWeight={l.isYear ? "800" : "600"}
+                y={10}
+                fontSize={9}
+                fill={l.isCurrent ? colors.primary : (l.isYear ? colors.text : colors.textMuted)}
+                fontWeight={l.isCurrent || l.isYear ? "800" : "700"}
               >
                 {l.label}
               </SvgText>
             ))}
 
-            {/* Day labels */}
-            {dayLabels.map((label, i) =>
-              label ? (
-                <SvgText
-                  key={`day-${i}`}
-                  x={0}
-                  y={i * (CELL_SIZE + CELL_GAP) + CELL_SIZE + 25}
-                  fontSize={9}
-                  fill={colors.textMuted}
-                >
-                  {label}
-                </SvgText>
-              ) : null
-            )}
-
             {/* Grid cells */}
             {weeks.map((week, weekIdx) =>
               week.map((day, dayIdx) => {
                 const isSelected = selectedDay?.date === day.date;
+                const isToday = day.date === todayStr;
+                const moodColor = day.mood ? getMoodColor(day.mood) : colors.surface;
+                
                 return (
                   <Rect
                     key={`${weekIdx}-${dayIdx}`}
-                    x={weekIdx * (CELL_SIZE + CELL_GAP) + 28}
-                    y={dayIdx * (CELL_SIZE + CELL_GAP) + 22}
+                    x={weekIdx * (CELL_SIZE + CELL_GAP)}
+                    y={dayIdx * (CELL_SIZE + CELL_GAP) + 18}
                     width={CELL_SIZE}
                     height={CELL_SIZE}
                     rx={3}
                     ry={3}
-                    fill={day.mood ? getMoodColor(day.mood) : colors.border}
-                    stroke={isSelected ? colors.primary : colors.border}
-                    strokeWidth={isSelected ? 1.5 : 0.5}
-                    opacity={day.mood ? 1 : 0.2}
+                    fill={moodColor}
+                    stroke={isSelected ? colors.primary : (isToday ? colors.primaryLight : colors.border)}
+                    strokeWidth={isSelected ? 1.5 : (isToday ? 1 : 0.5)}
+                    opacity={day.mood ? 1 : 0.4}
                     onPress={() => setSelectedDay(day)}
                   />
                 );
@@ -180,35 +191,29 @@ export default function MoodGraph({ data }: MoodGraphProps) {
         </ScrollView>
       </View>
 
-      {/* Legend */}
-      <View style={styles.legend}>
-        <Text style={styles.legendTitle}>Less</Text>
-        {Object.values(MOOD_MAP).map((mood) => (
-          <View key={mood.key} style={[styles.legendDot, { backgroundColor: mood.graphColor }]} />
-        ))}
-        <Text style={styles.legendTitle}>More</Text>
-      </View>
-
       {/* Selection Details */}
       {selectedDay && (
         <View style={styles.detailCard}>
           <View style={styles.detailHeader}>
-            <Text style={styles.detailDate}>{formatDateLabel(selectedDay.date)}</Text>
-            <TouchableOpacity onPress={() => setSelectedDay(null)}>
-              <Text style={styles.closeText}>Clear</Text>
+            <View>
+              <Text style={styles.detailDate}>{formatDateLabel(selectedDay.date)}</Text>
+              {selectedDay.mood ? (
+                <View style={styles.moodBadge}>
+                  <Text style={styles.moodEmoji}>{selectedMoodInfo?.emoji}</Text>
+                  <Text style={[styles.moodLabel, { color: selectedMoodInfo?.color }]}>
+                    {selectedMoodInfo?.label}
+                  </Text>
+                </View>
+              ) : (
+                <Text style={styles.noEntryText}>No activity recorded</Text>
+              )}
+            </View>
+            <TouchableOpacity 
+              onPress={() => setSelectedDay(null)}
+              style={styles.closeButton}
+            >
+              <Text style={styles.closeText}>Close</Text>
             </TouchableOpacity>
-          </View>
-          <View style={styles.detailContent}>
-            {selectedDay.mood ? (
-              <View style={styles.moodResult}>
-                <Text style={styles.moodEmoji}>{selectedMoodInfo?.emoji}</Text>
-                <Text style={[styles.moodLabel, { color: selectedMoodInfo?.color }]}>
-                  {selectedMoodInfo?.label}
-                </Text>
-              </View>
-            ) : (
-              <Text style={styles.noEntryText}>No journal entry for this day</Text>
-            )}
           </View>
         </View>
       )}
@@ -221,96 +226,104 @@ const createStyles = (colors: any) => StyleSheet.create({
     paddingHorizontal: 16,
     marginBottom: 20,
   },
+  headerRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
   title: {
     fontSize: 18,
     fontWeight: '700',
     color: colors.text,
-    marginBottom: 16,
   },
-  graphContainer: {
-    backgroundColor: colors.surface,
-    borderRadius: 16,
-    padding: 16,
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  legend: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    gap: 6,
-    marginTop: 14,
-  },
-  legendTitle: {
-    fontSize: 12,
-    color: colors.textSecondary,
-    fontWeight: '500',
-    marginHorizontal: 4,
-  },
-  legendItem: {
+  legendMinimal: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
   },
-  legendDot: {
-    width: 10,
-    height: 10,
-    borderRadius: 3,
+  legendDotSmall: {
+    width: 8,
+    height: 8,
+    borderRadius: 2,
   },
-  legendLabel: {
-    fontSize: 14,
+  legendSmallText: {
+    fontSize: 10,
+    color: colors.textMuted,
+    marginHorizontal: 2,
   },
-  detailCard: {
+  graphWrapper: {
+    flexDirection: 'row',
     backgroundColor: colors.surface,
-    padding: 16,
     borderRadius: 20,
-    marginTop: 20,
+    padding: 16,
     borderWidth: 1,
     borderColor: colors.border,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 10,
-    elevation: 3,
+    alignItems: 'flex-start',
+  },
+  dayLabelsCol: {
+    paddingTop: 18, // Aligns with grid y offset
+    marginRight: 8,
+    width: 25,
+  },
+  dayLabelText: {
+    fontSize: 9,
+    height: CELL_SIZE + CELL_GAP,
+    color: colors.textSecondary,
+    fontWeight: '600',
+    textAlign: 'right',
+  },
+  scrollPadding: {
+    paddingRight: 10,
+  },
+  detailCard: {
+    backgroundColor: colors.primary + '08',
+    padding: 16,
+    borderRadius: 24,
+    marginTop: 16,
+    borderWidth: 1,
+    borderColor: colors.primary + '20',
   },
   detailHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 12,
-    paddingBottom: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
   },
   detailDate: {
-    fontSize: 14,
-    fontWeight: '800',
-    color: colors.text,
-  },
-  closeText: {
     fontSize: 12,
-    color: colors.primary,
-    fontWeight: '600',
+    fontWeight: '700',
+    color: colors.textSecondary,
+    marginBottom: 4,
   },
-  detailContent: {
-    alignItems: 'center',
-  },
-  moodResult: {
+  moodBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
+    gap: 6,
   },
   moodEmoji: {
-    fontSize: 28,
+    fontSize: 20,
   },
   moodLabel: {
-    fontSize: 18,
-    fontWeight: '700',
+    fontSize: 16,
+    fontWeight: '800',
   },
   noEntryText: {
     fontSize: 14,
-    color: colors.textSecondary,
-    fontStyle: 'italic',
+    color: colors.textMuted,
+    fontWeight: '600',
+  },
+  closeButton: {
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    backgroundColor: colors.surface,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  closeText: {
+    fontSize: 11,
+    color: colors.text,
+    fontWeight: '700',
   },
 });
+

@@ -86,9 +86,9 @@ export default function MoodGraphScreen() {
             onPress={() => router.push('/all-entries')}
             activeOpacity={0.7}
           >
-            <Text style={styles.insightEmoji}>
-              {sortedMoods.length > 0 ? MOOD_MAP[sortedMoods[0][0] as MoodKey]?.emoji || '😊' : <Ionicons name="bulb-outline" size={28} color={colors.primary} />}
-            </Text>
+            <View style={{ marginRight: 14, backgroundColor: colors.primary + '15', padding: 10, borderRadius: 14 }}>
+              <Ionicons name="time-outline" size={26} color={colors.primary} />
+            </View>
             <View style={styles.insightText}>
               <Text style={styles.insightTitle}>
                 {sortedMoods.length > 0
