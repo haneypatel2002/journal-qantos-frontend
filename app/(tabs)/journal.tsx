@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback, useMemo } from 'react';
+import React, { useEffect, useState, useCallback, useMemo, useRef } from 'react';
 import { MoodKey } from '../../utils/constants';
 import {
   View,
@@ -25,6 +25,7 @@ import type { AppDispatch, RootState } from '../../store/store';
 import { useTheme } from '../../hooks/useTheme';
 import { Ionicons } from '@expo/vector-icons';
 import { notifyJournalEntrySaved } from '../../utils/notifications';
+import Toast from '../../components/Toast';
 
 export default function JournalScreen() {
   const dispatch = useDispatch<AppDispatch>();
@@ -37,6 +38,16 @@ export default function JournalScreen() {
   const [mood, setMood] = useState<MoodKey | null>(null);
   const [content, setContent] = useState('');
   const [loaded, setLoaded] = useState(false);
+  const [showToast, setShowToast] = useState(false);
+  const [toastMsg, setToastMsg] = useState('');
+  const scrollRef = useRef<ScrollView>(null);
+
+  const hasChanges = useMemo(() => {
+    if (!currentEntry) return mood !== null || content.trim() !== '';
+    const isDifferentMood = currentEntry.mood !== mood;
+    const isDifferentContent = currentEntry.content !== content;
+    return isDifferentMood || isDifferentContent;
+  }, [currentEntry, mood, content]);
 
   const entryDates = entries.map((e) => e.date);
 
@@ -79,8 +90,10 @@ export default function JournalScreen() {
 
     dispatch(saveEntry({ userId, date: selectedDate, mood, content })).then(() => {
       dispatch(fetchUser(userId));
-      // notifyJournalEntrySaved();
-      Alert.alert('Saved! ✨', 'Your journal entry has been saved.');
+      
+      const message = currentEntry ? 'Your journal entry has been updated✨' : 'Your journal entry has been saved✨';
+      setToastMsg(message);
+      setShowToast(true);
     });
   };
 
@@ -98,14 +111,15 @@ export default function JournalScreen() {
       <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
         <KeyboardAvoidingView
           style={{ flex: 1 }}
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          keyboardVerticalOffset={Platform.OS === 'ios' ? 50 : 20}
+          behavior={undefined}
         >
           <ScrollView 
+            ref={scrollRef}
             showsVerticalScrollIndicator={false}
-            contentContainerStyle={styles.scrollContent}
+            contentContainerStyle={[styles.scrollContent, { flexGrow: 1 }]}
             keyboardShouldPersistTaps="handled"
             keyboardDismissMode="on-drag"
+            automaticallyAdjustKeyboardInsets={Platform.OS === 'ios' || Platform.OS === 'android'}
           >
           {/* Header */}
           <View style={styles.header}>
@@ -123,7 +137,7 @@ export default function JournalScreen() {
             selectedDate={selectedDate}
             onDateSelect={handleDateSelect}
             entryDates={entryDates}
-            loading={loading}
+            loading={loading || saving}
           />
 
           {/* Mood */}
@@ -142,9 +156,12 @@ export default function JournalScreen() {
           {/* Save Button */}
           <View style={styles.saveContainer}>
             <TouchableOpacity
-              style={[styles.saveBtn, !mood && styles.saveBtnDisabled]}
+              style={[
+                styles.saveBtn, 
+                (!mood || !hasChanges) && styles.saveBtnDisabled
+              ]}
               onPress={handleSave}
-              disabled={saving || !mood}
+              disabled={saving || !mood || !hasChanges}
               activeOpacity={0.8}
             >
               {saving ? (
@@ -158,17 +175,22 @@ export default function JournalScreen() {
                     style={styles.btnIcon} 
                   />
                   <Text style={styles.saveBtnText}>
-                    {currentEntry ? 'Update Entry' : 'Save Entry'}
+                    {currentEntry ? (hasChanges ? 'Update Entry' : 'No Changes') : 'Save Entry'}
                   </Text>
                 </View>
               )}
             </TouchableOpacity>
           </View>
 
-          <View style={{ height: 40 }} />
+          <View style={{ height: 100 }} />
         </ScrollView>
       </KeyboardAvoidingView>
      </TouchableWithoutFeedback>
+      <Toast 
+        visible={showToast} 
+        message={toastMsg} 
+        onHide={() => setShowToast(false)} 
+      />
     </SafeAreaView>
   );
 }
@@ -187,7 +209,7 @@ const createStyles = (colors: any) => StyleSheet.create({
     alignItems: 'center',
   },
   scrollContent: {
-    paddingBottom: 120, // Increased to allow space when keyboard is open
+    paddingBottom: 150, // Increased to allow space when keyboard is open
   },
   greeting: {
     fontSize: 26,

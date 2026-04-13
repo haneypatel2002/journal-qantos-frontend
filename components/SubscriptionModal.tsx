@@ -33,7 +33,7 @@ export default function SubscriptionModal({ visible, onClose }: SubscriptionModa
           <Text style={styles.crown}>👑</Text>
           <Text style={styles.title}>Upgrade to Premium</Text>
           <Text style={styles.subtitle}>
-            Unlock the full potential of Journal Qantos
+            Unlock the full potential of Punch
           </Text>
 
           <ScrollView style={styles.featureList} showsVerticalScrollIndicator={false}>

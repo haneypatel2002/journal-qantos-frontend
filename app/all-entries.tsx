@@ -28,8 +28,9 @@ export default function AllEntriesScreen() {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
 
-  const { id: userId } = useSelector((state: RootState) => state.user);
+  const { id: userId, name, streakCount, entryCount } = useSelector((state: RootState) => state.user);
   const { entries, loading } = useSelector((state: RootState) => state.journal);
+  
 
   const [selectedMonth, setSelectedMonth] = useState('All');
   const [selectedSpecificDate, setSelectedSpecificDate] = useState<string | null>(null);
@@ -87,7 +88,7 @@ export default function AllEntriesScreen() {
   const handleShare = async (item: any) => {
     try {
       const mood = MOOD_MAP[item.mood as MoodKey];
-      const message = `✨ Journal Entry - ${formatDate(item.date)}\n\nMood: ${mood?.emoji} ${mood?.label || item.mood}\n\n"${item.content}"\n\nShared via Journal Qantos`;
+      const message = `✨ Journal Entry - ${formatDate(item.date)}\n\nMood: ${mood?.emoji} ${mood?.label || item.mood}\n\n${item.content??item.content}\n\nShared via ${name} - Punch App`;
       
       await Share.share({
         message,
@@ -357,6 +358,15 @@ export default function AllEntriesScreen() {
               </TouchableOpacity>
             );
           })}
+          
+          {(selectedMonth !== 'All' || selectedSpecificDate) && (
+            <TouchableOpacity 
+              style={[styles.resetBtn, { marginBottom: 20, alignSelf: 'center' }]}
+              onPress={clearFilters}
+            >
+              <Text style={styles.resetBtnText}>Clear All Filters</Text>
+            </TouchableOpacity>
+          )}
           <View style={{ height: 40 }} />
         </ScrollView>
       ) : (

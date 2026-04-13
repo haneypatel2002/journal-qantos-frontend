@@ -35,6 +35,7 @@ export default function ProfileScreen() {
   const [showSubscription, setShowSubscription] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editName, setEditName] = useState(name || '');
+  const [hasError, setHasError] = useState(false);
 
   useEffect(() => {
     if (userId) {
@@ -50,10 +51,20 @@ export default function ProfileScreen() {
 
   const handleUpdate = async () => {
     if (!editName.trim()) {
-      Alert.alert('Error', 'Name cannot be empty');
+      setHasError(true);
+      Alert.alert('Invalid Name', 'Name cannot be empty');
+      return;
+    } else if (editName.trim().length < 2) {
+      setHasError(true);
+      Alert.alert('Invalid Name', 'Name must be at least 2 characters long');
+      return;
+    }else if(editName.trim().length > 20){
+      setHasError(true);
+      Alert.alert('Invalid Name', 'Name must be less than 20 characters');
       return;
     }
     if (userId) {
+      setHasError(false);
       await dispatch(updateUser({ id: userId, name: editName.trim() }));
       setIsEditing(false);
       Alert.alert('Success', 'Profile updated successfully');
@@ -115,11 +126,18 @@ export default function ProfileScreen() {
           {isEditing ? (
             <View style={styles.editSection}>
               <TextInput
-                style={styles.input}
+                style={[
+                  styles.input,
+                  hasError && { borderColor: colors.error, borderWidth: 1.5 }
+                ]}
                 value={editName}
-                onChangeText={setEditName}
+                onChangeText={(text) => {
+                  setEditName(text);
+                  if (hasError) setHasError(false);
+                }}
                 placeholder="Enter your name"
                 placeholderTextColor={colors.textSecondary}
+                autoFocus
               />
               <TouchableOpacity style={styles.saveBtn} onPress={handleUpdate}>
                 {loading ? (

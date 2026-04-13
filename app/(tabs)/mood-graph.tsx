@@ -31,8 +31,37 @@ export default function MoodGraphScreen() {
   });
 
   const totalEntries = entries.length;
-  const sortedMoods = Object.entries(moodCounts)
-    .sort((a, b) => b[1] - a[1]);
+  const sortedMoods = Object.entries(moodCounts).sort((a, b) => b[1] - a[1]);
+
+  // Handle tie cases for top moods
+  const topMoods = useMemo(() => {
+    if (sortedMoods.length === 0) return [];
+    const maxCount = sortedMoods[0][1];
+    return sortedMoods.filter(([_, count]) => count === maxCount);
+  }, [sortedMoods]);
+
+  const insightData = useMemo(() => {
+    if (topMoods.length === 0) {
+      return { title: 'No data yet', desc: 'Add journal entries to see insights' };
+    }
+
+    const labels = topMoods.map(([mood]) => MOOD_MAP[mood as MoodKey]?.label || mood);
+    const percentage = totalEntries > 0 ? Math.round((topMoods[0][1] / totalEntries) * 100) : 0;
+    
+    let title = '';
+    if (topMoods.length === 1) {
+      title = `You feel ${labels[0]} most often`;
+    } else if (topMoods.length === 2) {
+      title = `You feel ${labels[0]} and ${labels[1]} most often`;
+    } else {
+      title = 'Multiple moods are equally frequent';
+    }
+
+    return {
+      title,
+      desc: `${labels.join(' & ')} appeared in ${percentage}% of your entries`
+    };
+  }, [topMoods, totalEntries]);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -91,14 +120,10 @@ export default function MoodGraphScreen() {
             </View>
             <View style={styles.insightText}>
               <Text style={styles.insightTitle}>
-                {sortedMoods.length > 0
-                  ? `You feel ${sortedMoods[0][0]} most often`
-                  : 'No data yet'}
+                {insightData.title}
               </Text>
               <Text style={styles.insightDesc}>
-                {sortedMoods.length > 0
-                  ? `${sortedMoods[0][0]} appeared in ${Math.round((sortedMoods[0][1] / totalEntries) * 100)}% of your entries`
-                  : 'Add journal entries to see insights'}
+                {insightData.desc}
               </Text>
             </View>
             <Ionicons name="chevron-forward" size={20} color={colors.textMuted} />

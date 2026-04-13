@@ -79,6 +79,7 @@ function RootLayoutNav() {
             headerShadowVisible: false,
             headerTitle: 'Challenge Details',
             headerTitleStyle: { fontWeight: '800' },
+            headerBackTitle: 'Back',
             presentation: 'card',
           }}
         />

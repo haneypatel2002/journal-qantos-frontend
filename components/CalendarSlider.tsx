@@ -63,22 +63,28 @@ export default function CalendarSlider({ selectedDate, onDateSelect, entryDates 
     }
   };
 
-  // On mount: scroll to today (last item) reliably
+  // On mount: scroll to selectedDate (if in range) or today reliably
   useEffect(() => {
     if (!hasScrolledInitially) {
-      const todayIndex = days.findIndex((d) => d.date === todayStr);
+      // Prioritize selectedDate if it's within the days range, otherwise use today
+      const targetDate = selectedDate || todayStr;
+      const targetIndex = days.findIndex((d) => d.date === targetDate);
+      const indexToScroll = targetIndex >= 0 ? targetIndex : days.findIndex((d) => d.date === todayStr);
+      const finalIndex = indexToScroll >= 0 ? indexToScroll : days.length - 1;
+
       // Use multiple attempts to ensure scroll happens after layout
-      const timer1 = setTimeout(() => scrollToIndex(todayIndex >= 0 ? todayIndex : days.length - 1, false), 50);
-      const timer2 = setTimeout(() => scrollToIndex(todayIndex >= 0 ? todayIndex : days.length - 1, false), 200);
-      const timer3 = setTimeout(() => scrollToIndex(todayIndex >= 0 ? todayIndex : days.length - 1, false), 500);
+      const timer1 = setTimeout(() => scrollToIndex(finalIndex, false), 50);
+      const timer2 = setTimeout(() => scrollToIndex(finalIndex, false), 200);
+      const timer3 = setTimeout(() => scrollToIndex(finalIndex, false), 500);
       setHasScrolledInitially(true);
+      
       return () => {
         clearTimeout(timer1);
         clearTimeout(timer2);
         clearTimeout(timer3);
       };
     }
-  }, []);
+  }, [selectedDate, todayStr, days]);
 
   // When selectedDate changes (user taps a date), scroll to it
   useEffect(() => {
@@ -111,10 +117,11 @@ export default function CalendarSlider({ selectedDate, onDateSelect, entryDates 
                 isToday && !isSelected && styles.dayItemToday,
                 isSelected && !isToday && styles.dayItemSelected,
                 isSelected && isToday && styles.dayItemTodaySelected,
+                loading && styles.disabledItem,
               ]}
               onPress={() => onDateSelect(day.date)}
               activeOpacity={0.8}
-              disabled={loading && isSelected}
+              disabled={loading}
             >
               <Text style={[
                 styles.dayName,
@@ -139,16 +146,15 @@ export default function CalendarSlider({ selectedDate, onDateSelect, entryDates 
               )}
 
               <View style={styles.footer}>
-                {hasEntry ? (
+                <Text style={[
+                  styles.month,
+                  isToday && !isSelected && styles.monthToday,
+                  isSelected && styles.monthSelected,
+                ]}>
+                  {day.month} {day.year}
+                </Text>
+                {hasEntry && (
                   <View style={[styles.dot, isSelected && styles.dotSelected]} />
-                ) : (
-                  <Text style={[
-                    styles.month,
-                    isToday && !isSelected && styles.monthToday,
-                    isSelected && styles.monthSelected,
-                  ]}>
-                    {day.month} {day.year}
-                  </Text>
                 )}
               </View>
             </TouchableOpacity>
@@ -169,7 +175,7 @@ const createStyles = (colors: any) => StyleSheet.create({
   },
   dayItem: {
     width: ITEM_WIDTH,
-    height: 90,
+    height: 100,
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: 22,
@@ -182,6 +188,9 @@ const createStyles = (colors: any) => StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
     shadowRadius: 4,
+  },
+  disabledItem: {
+    opacity: 0.6,
   },
   dayItemSelected: {
     backgroundColor: colors.primary,
@@ -253,7 +262,7 @@ const createStyles = (colors: any) => StyleSheet.create({
     fontWeight: '900',
   },
   footer: {
-    height: 16,
+    height: 24,
     marginTop: 6,
     alignItems: 'center',
     justifyContent: 'center',
@@ -276,6 +285,7 @@ const createStyles = (colors: any) => StyleSheet.create({
     height: 6,
     borderRadius: 3,
     backgroundColor: colors.primary,
+    marginTop: 4,
   },
   dotSelected: {
     backgroundColor: '#FFFFFF',
