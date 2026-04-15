@@ -11,6 +11,8 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import * as Device from 'expo-device';
+import Constants from 'expo-constants';
 import { useDispatch, useSelector } from 'react-redux';
 import { useTheme } from '../hooks/useTheme';
 import type { AppDispatch, RootState } from '../store/store';
@@ -18,6 +20,7 @@ import { createUser, loadStoredUser } from '../store/userSlice';
 
 export default function OnboardingScreen() {
   const [name, setName] = useState('');
+  const [deviceId, setDeviceId] = useState<string | null>(null);
   const dispatch = useDispatch<AppDispatch>();
   const router = useRouter();
   const { colors } = useTheme();
@@ -27,6 +30,42 @@ export default function OnboardingScreen() {
 
   useEffect(() => {
     dispatch(loadStoredUser());
+    
+    // Get Unique Device ID using multiple fallbacks for robustness
+    const fetchDeviceId = async () => {
+      try {
+        let id: string | null = null;
+        
+        // 1. Try react-native-device-info (Dynamic require for Expo Go safety)
+        try {
+          // Only works in dev builds/native. In Expo Go, this throws but is caught.
+          const DeviceInfo = require('react-native-device-info');
+          if (DeviceInfo && typeof DeviceInfo.getUniqueId === 'function') {
+            id = await DeviceInfo.getUniqueId();
+          }
+        } catch (e) {
+          // Native module missing in Expo Go
+        }
+
+        // 2. Fallback to Constants (Works in Expo Go)
+        if (!id) {
+          id = Constants.installationId || Constants.expoConfig?.extra?.eas?.projectId;
+        }
+
+        // 3. Fallback to Device properties
+        if (!id) {
+          id = Device.osInternalBuildId || 'unknown_dev_id';
+        }
+
+        setDeviceId(id);
+        console.log('Device ID initialized:', id);
+      } catch (e) {
+        console.log('Error initializing device ID:', e);
+        setDeviceId('unknown_fallthrough');
+      }
+    };
+    
+    fetchDeviceId();
   }, []);
 
   useEffect(() => {
@@ -38,7 +77,10 @@ export default function OnboardingScreen() {
   const handleContinue = () => {
     if (name.trim().length < 2) return;
     // Navigate to welcome screen first — it handles createUser
-    router.replace({ pathname: '/welcome', params: { name: name.trim() } });
+    router.replace({ 
+      pathname: '/welcome', 
+      params: { name: name.trim(), deviceId: deviceId || 'unknown' } 
+    });
   };
 
   return (

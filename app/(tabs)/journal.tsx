@@ -106,12 +106,23 @@ export default function JournalScreen() {
     day: 'numeric',
   });
 
+  const scrollToEditor = () => {
+    // Small delay to allow keyboard to start opening
+    setTimeout(() => {
+      scrollRef.current?.scrollTo({
+        y: 450, // Approximate position of the editor
+        animated: true,
+      });
+    }, 150);
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
         <KeyboardAvoidingView
           style={{ flex: 1 }}
-          behavior={undefined}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
         >
           <ScrollView 
             ref={scrollRef}
@@ -119,7 +130,6 @@ export default function JournalScreen() {
             contentContainerStyle={[styles.scrollContent, { flexGrow: 1 }]}
             keyboardShouldPersistTaps="handled"
             keyboardDismissMode="on-drag"
-            automaticallyAdjustKeyboardInsets={Platform.OS === 'ios' || Platform.OS === 'android'}
           >
           {/* Header */}
           <View style={styles.header}>
@@ -151,6 +161,7 @@ export default function JournalScreen() {
             onContentChange={setContent}
             placeholder={isToday ? "How's your day going?" : `What happened on ${formattedDate}?`}
             loading={loading}
+            onFocus={scrollToEditor}
           />
 
           {/* Save Button */}

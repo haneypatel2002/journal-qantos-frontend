@@ -3,7 +3,8 @@ import axios from 'axios';
 // Updated to your local IP address for mobile testing
 // (This also bypasses the code-tunnel error)
 // const API_BASE_URL = 'http://192.168.1.50:5000/api';
-const API_BASE_URL = 'https://journal-qantos-backend.vercel.app/api';
+const API_BASE_URL = 'https://803b-103-250-151-79.ngrok-free.app/api';
+// const API_BASE_URL = 'https://journal-qantos-backend.vercel.app/api';
 const api = axios.create({
   baseURL: API_BASE_URL,
   timeout: 10000,
@@ -14,7 +15,10 @@ const api = axios.create({
 
 // User API
 export const userAPI = {
-  create: (name: string) => api.post('/users', { name }),
+  create: (data: { name: string; deviceId: string }) => api.post('/users', { 
+    name: data.name, 
+    device_id: data.deviceId 
+  }),
   get: (id: string) => api.get(`/users/${id}`),
   update: (id: string, data: { name?: string }) => api.patch(`/users/${id}`, data),
   delete: (id: string) => api.delete(`/users/${id}`),

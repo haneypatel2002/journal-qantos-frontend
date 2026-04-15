@@ -23,16 +23,16 @@ const initialState: UserState = {
   entryCount: 0,
   moodDistribution: [],
   isOnboarded: false,
-  theme: 'dark',
+  theme: 'light',
   loading: false,
   error: null,
 };
 
 export const createUser = createAsyncThunk(
   'user/create',
-  async (name: string, { rejectWithValue }) => {
+  async (data: { name: string; deviceId: string }, { rejectWithValue }) => {
     try {
-      const response = await userAPI.create(name);
+      const response = await userAPI.create(data);
       await AsyncStorage.setItem('userId', response.data._id);
       await AsyncStorage.setItem('userName', response.data.name);
       return response.data;
@@ -65,7 +65,7 @@ export const loadStoredUser = createAsyncThunk(
       return { 
         id: userId, 
         name: userName, 
-        theme: theme || 'dark' 
+        theme: theme || 'light' 
       };
     } catch (error: any) {
       return rejectWithValue('Failed to load stored user');
@@ -150,7 +150,7 @@ const userSlice = createSlice({
           state.name = action.payload.name || '';
           state.isOnboarded = true;
         }
-        state.theme = (action.payload.theme as 'dark' | 'light') || 'dark';
+        state.theme = (action.payload.theme as 'dark' | 'light') || 'light';
       })
       .addCase(updateUser.pending, (state) => {
         state.loading = true;

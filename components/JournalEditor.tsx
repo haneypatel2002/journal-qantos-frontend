@@ -8,9 +8,10 @@ interface JournalEditorProps {
   onContentChange: (text: string) => void;
   placeholder?: string;
   loading?: boolean;
+  onFocus?: () => void;
 }
 
-export default function JournalEditor({ content, onContentChange, placeholder, loading = false }: JournalEditorProps) {
+export default function JournalEditor({ content, onContentChange, placeholder, loading = false, onFocus }: JournalEditorProps) {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const inputRef = useRef<TextInput>(null);
@@ -55,7 +56,10 @@ export default function JournalEditor({ content, onContentChange, placeholder, l
           onChangeText={onContentChange}
           textAlignVertical="top"
           scrollEnabled
-          onFocus={() => setIsFocused(true)}
+          onFocus={() => {
+            setIsFocused(true);
+            onFocus?.();
+          }}
           onBlur={() => setIsFocused(false)}
           selectionColor={colors.primary}
         />

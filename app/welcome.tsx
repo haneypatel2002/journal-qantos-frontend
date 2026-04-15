@@ -23,7 +23,7 @@ export default function WelcomeScreen() {
   const dispatch = useDispatch<AppDispatch>();
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
-  const { name } = useLocalSearchParams<{ name: string }>();
+  const { name, deviceId } = useLocalSearchParams<{ name: string; deviceId: string }>();
   const { isOnboarded, loading } = useSelector((state: RootState) => state.user);
 
   // Animation values
@@ -44,8 +44,8 @@ export default function WelcomeScreen() {
 
   // 1. Create user on mount
   useEffect(() => {
-    if (name) {
-      dispatch(createUser(name));
+    if (name && deviceId) {
+      dispatch(createUser({ name, deviceId }));
     }
   }, []);
 
