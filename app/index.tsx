@@ -13,12 +13,14 @@ import {
 } from 'react-native';
 import * as Device from 'expo-device';
 import Constants from 'expo-constants';
+import { Video, ResizeMode, AVPlaybackStatus } from 'expo-av';
 import { useDispatch, useSelector } from 'react-redux';
 import { useTheme } from '../hooks/useTheme';
 import type { AppDispatch, RootState } from '../store/store';
 import { createUser, loadStoredUser } from '../store/userSlice';
 
 export default function OnboardingScreen() {
+  const [showVideo, setShowVideo] = useState(true);
   const [name, setName] = useState('');
   const [deviceId, setDeviceId] = useState<string | null>(null);
   const dispatch = useDispatch<AppDispatch>();
@@ -84,65 +86,88 @@ export default function OnboardingScreen() {
   };
 
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-    >
-      <View style={styles.content}>
-        <View style={styles.header}>
-          <Ionicons name="book-sharp" size={55} color={colors.primary} style={styles.journalIcon} />
-          <Text style={styles.appName}>Punch</Text>
-          {/* <Text style={styles.tagline}>Your AI-Powered Journaling Companion</Text> */}
-        </View>
+    <View style={{ flex: 1 }}>
+      {showVideo && (
+        <Video
+          source={require('../assets/video/logo-animation.mp4')}
+          style={StyleSheet.absoluteFill}
+          resizeMode={ResizeMode.COVER}
+          shouldPlay
+          isLooping={false}
+          onPlaybackStatusUpdate={(status) => {
+            if (status.isLoaded && status.didJustFinish) {
+              setShowVideo(false);
+            }
+          }}
+          onError={(error) => {
+            console.error('Video SplashScreen Error:', error);
+            setShowVideo(false);
+          }}
+        />
+      )}
+      
+      {!showVideo && (
+        <KeyboardAvoidingView
+          style={styles.container}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        >
+          <View style={styles.content}>
+            <View style={styles.header}>
+              <Ionicons name="book-sharp" size={55} color={colors.primary} style={styles.journalIcon} />
+              <Text style={styles.appName}>Punch</Text>
+              {/* <Text style={styles.tagline}>Your AI-Powered Journaling Companion</Text> */}
+            </View>
 
-        <View style={styles.form}>
-          <Text style={styles.welcomeText}>What should we call you?</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Enter your name"
-            placeholderTextColor={colors.textMuted}
-            value={name}
-            onChangeText={setName}
-            autoCapitalize="words"
-            maxLength={30}
-          />
-          {error && <Text style={styles.errorText}>{error}</Text>}
-          <TouchableOpacity
-            style={[styles.button, name.trim().length < 2 && styles.buttonDisabled]}
-            onPress={handleContinue}
-            disabled={loading || name.trim().length < 2}
-            activeOpacity={0.8}
-          >
-            {loading ? (
-              <ActivityIndicator color="#FFFFFF" />
-            ) : (
-              <Text style={styles.buttonText}>Start Journaling →</Text>
-            )}
-          </TouchableOpacity>
-        </View>
+            <View style={styles.form}>
+              <Text style={styles.welcomeText}>What should we call you?</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="Enter your name"
+                placeholderTextColor={colors.textMuted}
+                value={name}
+                onChangeText={setName}
+                autoCapitalize="words"
+                maxLength={30}
+              />
+              {error && <Text style={styles.errorText}>{error}</Text>}
+              <TouchableOpacity
+                style={[styles.button, name.trim().length < 2 && styles.buttonDisabled]}
+                onPress={handleContinue}
+                disabled={loading || name.trim().length < 2}
+                activeOpacity={0.8}
+              >
+                {loading ? (
+                  <ActivityIndicator color="#FFFFFF" />
+                ) : (
+                  <Text style={styles.buttonText}>Start Journaling →</Text>
+                )}
+              </TouchableOpacity>
+            </View>
 
-        <View style={styles.features}>
-          <View style={styles.featureItem}>
-            <View style={styles.iconContainer}>
-              <Ionicons name="pencil-outline" size={20} color={colors.primary} />
+            <View style={styles.features}>
+              <View style={styles.featureItem}>
+                <View style={styles.iconContainer}>
+                  <Ionicons name="pencil-outline" size={20} color={colors.primary} />
+                </View>
+                <Text style={styles.featureText}>Daily Journal</Text>
+              </View>
+              <View style={styles.featureItem}>
+                <View style={styles.iconContainer}>
+                  <Ionicons name="bar-chart-outline" size={20} color={colors.primary} />
+                </View>
+                <Text style={styles.featureText}>Mood Tracking</Text>
+              </View>
+              <View style={styles.featureItem}>
+                <View style={styles.iconContainer}>
+                  <Ionicons name="trophy-outline" size={20} color={colors.primary} />
+                </View>
+                <Text style={styles.featureText}>21-Day Challenges</Text>
+              </View>
             </View>
-            <Text style={styles.featureText}>Daily Journal</Text>
           </View>
-          <View style={styles.featureItem}>
-            <View style={styles.iconContainer}>
-              <Ionicons name="bar-chart-outline" size={20} color={colors.primary} />
-            </View>
-            <Text style={styles.featureText}>Mood Tracking</Text>
-          </View>
-          <View style={styles.featureItem}>
-            <View style={styles.iconContainer}>
-              <Ionicons name="trophy-outline" size={20} color={colors.primary} />
-            </View>
-            <Text style={styles.featureText}>21-Day Challenges</Text>
-          </View>
-        </View>
-      </View>
-    </KeyboardAvoidingView>
+        </KeyboardAvoidingView>
+      )}
+    </View>
   );
 }
 
