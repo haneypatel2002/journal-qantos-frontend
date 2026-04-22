@@ -1,5 +1,5 @@
 import React, { useMemo, useRef, useState } from 'react';
-import { View, TextInput, StyleSheet, ActivityIndicator, Text, Pressable, Keyboard, Platform } from 'react-native';
+import { View, TextInput, StyleSheet, ActivityIndicator, Text, Pressable, Keyboard, Platform, TouchableOpacity, ScrollView } from 'react-native';
 import { useTheme } from '../hooks/useTheme';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -46,29 +46,34 @@ export default function JournalEditor({ content, onContentChange, placeholder, l
             </TouchableOpacity>
           )}
         </View>
-        <TextInput
-          ref={inputRef}
-          style={styles.editor}
-          multiline
-          placeholder={placeholder || "Write about your day..."}
-          placeholderTextColor={colors.textMuted}
-          value={content}
-          onChangeText={onContentChange}
-          textAlignVertical="top"
-          scrollEnabled
-          onFocus={() => {
-            setIsFocused(true);
-            onFocus?.();
-          }}
-          onBlur={() => setIsFocused(false)}
-          selectionColor={colors.primary}
-        />
+        <ScrollView 
+          style={styles.scrollWrapper}
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={true}
+          keyboardShouldPersistTaps="handled"
+        >
+          <TextInput
+            ref={inputRef}
+            style={styles.editor}
+            multiline
+            placeholder={placeholder || "Write about your day..."}
+            placeholderTextColor={colors.textMuted}
+            value={content}
+            onChangeText={onContentChange}
+            textAlignVertical="top"
+            scrollEnabled={false} // Handled by ScrollView
+            onFocus={() => {
+              setIsFocused(true);
+              onFocus?.();
+            }}
+            onBlur={() => setIsFocused(false)}
+            selectionColor={colors.primary}
+          />
+        </ScrollView>
       </Pressable>
     </View>
   );
 }
-
-import { TouchableOpacity } from 'react-native';
 
 const createStyles = (colors: any) => StyleSheet.create({
   container: {
@@ -78,11 +83,10 @@ const createStyles = (colors: any) => StyleSheet.create({
   editorContainer: {
     backgroundColor: colors.surface,
     borderRadius: 16,
-    minHeight: 180,
-    maxHeight: 300,
+    minHeight: 200,
+    maxHeight: 320, // Re-introduced to keep editor contained
     borderWidth: 1,
     borderColor: colors.border,
-    overflow: 'hidden',
   },
   editorContainerFocused: {
     borderColor: colors.primary,
@@ -119,7 +123,12 @@ const createStyles = (colors: any) => StyleSheet.create({
     color: colors.text,
     fontSize: 16,
     lineHeight: 24,
-    minHeight: 148,
+  },
+  scrollWrapper: {
+    flex: 1,
+  },
+  scrollContent: {
+    paddingBottom: 20,
   },
   loaderPlaceholder: {
     backgroundColor: colors.surface,

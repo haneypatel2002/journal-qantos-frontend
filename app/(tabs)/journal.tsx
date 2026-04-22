@@ -12,7 +12,6 @@ import {
   KeyboardAvoidingView,
   Platform,
   Keyboard,
-  TouchableWithoutFeedback,
 } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import CalendarSlider from '../../components/CalendarSlider';
@@ -24,7 +23,6 @@ import { fetchUser } from '../../store/userSlice';
 import type { AppDispatch, RootState } from '../../store/store';
 import { useTheme } from '../../hooks/useTheme';
 import { Ionicons } from '@expo/vector-icons';
-import { notifyJournalEntrySaved } from '../../utils/notifications';
 import Toast from '../../components/Toast';
 
 export default function JournalScreen() {
@@ -77,7 +75,7 @@ export default function JournalScreen() {
 
   const handleDateSelect = useCallback((date: string) => {
     dispatch(setSelectedDate(date));
-    setMood(null); // Clear local state immediately for better UX
+    setMood(null);
     setContent('');
     setLoaded(false);
   }, [dispatch]);
@@ -107,10 +105,9 @@ export default function JournalScreen() {
   });
 
   const scrollToEditor = () => {
-    // Small delay to allow keyboard to start opening
     setTimeout(() => {
       scrollRef.current?.scrollTo({
-        y: 450, // Approximate position of the editor
+        y: 520,
         animated: true,
       });
     }, 150);
@@ -118,85 +115,79 @@ export default function JournalScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
-        <KeyboardAvoidingView
-          style={{ flex: 1 }}
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
+      >
+        <ScrollView 
+          ref={scrollRef}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ flexGrow: 1 }}
+          keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="on-drag"
         >
-          <ScrollView 
-            ref={scrollRef}
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={[styles.scrollContent, { flexGrow: 1 }]}
-            keyboardShouldPersistTaps="handled"
-            keyboardDismissMode="on-drag"
-          >
-          {/* Header */}
-          <View style={styles.header}>
-            <View>
-              <Text style={styles.greeting}>Hello, {name} 👋</Text>
-              <Text style={styles.dateText}>{formattedDate}</Text>
+          <View style={{ paddingBottom: 300 }}>
+            <View style={styles.header}>
+              <View>
+                <Text style={styles.greeting}>Hello, {name} 👋</Text>
+                <Text style={styles.dateText}>{formattedDate}</Text>
+              </View>
             </View>
+
+            <StreakCounter streak={streakCount} totalEntries={entryCount} />
+
+            <CalendarSlider
+              selectedDate={selectedDate}
+              onDateSelect={handleDateSelect}
+              entryDates={entryDates}
+              loading={loading || saving}
+            />
+
+            <View style={styles.section}>
+              <MoodSelector selectedMood={mood} onMoodSelect={setMood} />
+            </View>
+
+            <JournalEditor
+              content={content}
+              onContentChange={setContent}
+              placeholder={isToday ? "How's your day going?" : `What happened on ${formattedDate}?`}
+              loading={loading}
+              onFocus={scrollToEditor}
+            />
+
+            <View style={styles.saveContainer}>
+              <TouchableOpacity
+                style={[
+                  styles.saveBtn, 
+                  (!mood || !hasChanges) && styles.saveBtnDisabled
+                ]}
+                onPress={handleSave}
+                disabled={saving || !mood || !hasChanges}
+                activeOpacity={0.8}
+              >
+                {saving ? (
+                  <ActivityIndicator color="#FFFFFF" />
+                ) : (
+                  <View style={styles.btnContent}>
+                    <Ionicons 
+                      name={currentEntry ? "cloud-upload-outline" : "sparkles-outline"} 
+                      size={20} 
+                      color="#FFFFFF" 
+                      style={styles.btnIcon} 
+                    />
+                    <Text style={styles.saveBtnText}>
+                      {currentEntry ? (hasChanges ? 'Update Entry' : 'No Changes') : 'Save Entry'}
+                    </Text>
+                  </View>
+                )}
+              </TouchableOpacity>
+            </View>
+
+            <View style={{ height: 100 }} />
           </View>
-
-          {/* Stats */}
-          <StreakCounter streak={streakCount} totalEntries={entryCount} />
-
-          {/* Calendar */}
-          <CalendarSlider
-            selectedDate={selectedDate}
-            onDateSelect={handleDateSelect}
-            entryDates={entryDates}
-            loading={loading || saving}
-          />
-
-          {/* Mood */}
-          <View style={styles.section}>
-            <MoodSelector selectedMood={mood} onMoodSelect={setMood} />
-          </View>
-
-          {/* Editor */}
-          <JournalEditor
-            content={content}
-            onContentChange={setContent}
-            placeholder={isToday ? "How's your day going?" : `What happened on ${formattedDate}?`}
-            loading={loading}
-            onFocus={scrollToEditor}
-          />
-
-          {/* Save Button */}
-          <View style={styles.saveContainer}>
-            <TouchableOpacity
-              style={[
-                styles.saveBtn, 
-                (!mood || !hasChanges) && styles.saveBtnDisabled
-              ]}
-              onPress={handleSave}
-              disabled={saving || !mood || !hasChanges}
-              activeOpacity={0.8}
-            >
-              {saving ? (
-                <ActivityIndicator color="#FFFFFF" />
-              ) : (
-                <View style={styles.btnContent}>
-                  <Ionicons 
-                    name={currentEntry ? "cloud-upload-outline" : "sparkles-outline"} 
-                    size={20} 
-                    color="#FFFFFF" 
-                    style={styles.btnIcon} 
-                  />
-                  <Text style={styles.saveBtnText}>
-                    {currentEntry ? (hasChanges ? 'Update Entry' : 'No Changes') : 'Save Entry'}
-                  </Text>
-                </View>
-              )}
-            </TouchableOpacity>
-          </View>
-
-          <View style={{ height: 100 }} />
         </ScrollView>
       </KeyboardAvoidingView>
-     </TouchableWithoutFeedback>
       <Toast 
         visible={showToast} 
         message={toastMsg} 
@@ -220,7 +211,7 @@ const createStyles = (colors: any) => StyleSheet.create({
     alignItems: 'center',
   },
   scrollContent: {
-    paddingBottom: 150, // Increased to allow space when keyboard is open
+    paddingBottom: 200, // More bottom padding to ensure accessibility
   },
   greeting: {
     fontSize: 26,

@@ -104,21 +104,30 @@ export default function MoodGraph({ data }: MoodGraphProps) {
       const isCurrentMonth = month === currentMonth && year === currentYear;
 
       if (year !== lastYear) {
+        // If year changes within the first few weeks, remove the initial year label to avoid overlap
+        if (i > 0 && i < 4 && monthYearLabels.length > 0) {
+          monthYearLabels.pop();
+        }
+        const monthName = firstDay.toLocaleDateString(undefined, { month: 'short' });
         monthYearLabels.push({
-          label: year.toString(),
+          label: `${monthName} ${year}`,
           x: i * (CELL_SIZE + CELL_GAP),
           isYear: true
         });
         lastYear = year;
         lastMonth = month;
       } else if (month !== lastMonth && (i % 4 === 0 || isCurrentMonth)) { 
-        // Ensure current month is shown even if spacing doesn't align
-        monthYearLabels.push({
-          label: firstDay.toLocaleDateString(undefined, { month: 'short' }),
-          x: i * (CELL_SIZE + CELL_GAP),
-          isCurrent: isCurrentMonth
-        });
-        lastMonth = month;
+        // Avoid month label overlapping if it's too close to the start label
+        if (i > 0 && i < 3 && monthYearLabels.length > 0) {
+          lastMonth = month; // Consume the month change but don't label it to avoid overlap
+        } else {
+          monthYearLabels.push({
+            label: firstDay.toLocaleDateString(undefined, { month: 'short' }),
+            x: i * (CELL_SIZE + CELL_GAP),
+            isCurrent: isCurrentMonth
+          });
+          lastMonth = month;
+        }
       }
     });
     return monthYearLabels;
@@ -179,7 +188,7 @@ export default function MoodGraph({ data }: MoodGraphProps) {
                     rx={3}
                     ry={3}
                     fill={moodColor}
-                    stroke={isSelected ? colors.primary : (isToday ? colors.primaryLight : colors.border)}
+                    stroke={isSelected ? colors.primary : (isToday ? colors.primaryLight : 'grey')}
                     strokeWidth={isSelected ? 1.5 : (isToday ? 1 : 0.5)}
                     opacity={day.mood ? 1 : 0.4}
                     onPress={() => setSelectedDay(day)}
