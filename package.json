@@ -10,7 +10,8 @@
     "web": "expo start --web",
     "lint": "expo lint",
     "prebuild": "npx expo prebuild --clean",
-    "build:preview": "npx eas build --platform android --profile preview"
+    "build:preview": "npx eas build --platform android --profile preview",
+    "build:release": "npx eas build --platform android --profile production"
   },
   "dependencies": {
     "@expo/vector-icons": "^15.0.3",
